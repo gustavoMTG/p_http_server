@@ -1,0 +1,3 @@
+*.o
+*.swp
+p_http_server

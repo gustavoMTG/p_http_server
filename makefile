@@ -2,5 +2,5 @@ IN_PREFIX = src
 OBJ_PREFIX = objs
 
 
-p_http_server: $(IN_PREFIX)/main.c
-	gcc -o p_http_server $(IN_PREFIX)/main.c
+p_http_server: $(IN_PREFIX)/main.c $(IN_PREFIX)/parser.c
+	gcc -o p_http_server $(IN_PREFIX)/main.c $(IN_PREFIX)/parser.c

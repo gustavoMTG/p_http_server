@@ -1,21 +1,17 @@
 #include <sys/socket.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include "parser.h"
 
 #define PORT 8080
-#define BUFF_SIZE 1024
+#define BUFF_SIZE 2048
 #define BUFF_REQLINE 30
-
-struct Request {
-    char req_line[BUFF_REQLINE];
-};
 
 int main(int argc, char *argv[])
 {
-    int sfd, cfd, addrlen, i;
+    int sfd, cfd, addrlen;
     ssize_t bytes_rec;
     struct sockaddr_in address;
     char buffer[BUFF_SIZE] = {0};
@@ -59,13 +55,14 @@ int main(int argc, char *argv[])
         buffer[bytes_rec] = '\0';
 
         // Parsing 
-        // Request line
-        for (i=0; strncmp(buffer+i, "\r\n", 2) != 0; i++)
-            req.req_line[i] = buffer[i];
-        req.req_line[i] = '\0';
+        // Request line and headers
+		request_parser(&req, buffer, BUFF_SIZE);
 
         printf("Bytes received:\n%s\n", buffer);
-        printf("Request line:\n%s\n", req.req_line);
+        printf("Request line:\n%.*s\n", req.req_line_len, req.req_line_ptr);
+		printf("Method length: %d\n", req.method_len);
+		printf("URI length: %d\n", req.uri_len);
+		printf("HTTP-version length: %d\n", req.httpv_len);
     }
     
     if (bytes_rec == 0)
