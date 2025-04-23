@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <string.h>
 #include "parser.h"
 
 #define PORT 8080
@@ -58,11 +59,6 @@ int main(int argc, char *argv[])
         // Request line and headers
 		request_parser(&req, buffer, BUFF_SIZE);
 
-        printf("Bytes received:\n%s\n", buffer);
-        printf("Request line:\n%.*s\n", req.req_line_len, req.req_line_ptr);
-		printf("Method length: %d\n", req.method_len);
-		printf("URI length: %d\n", req.uri_len);
-		printf("HTTP-version length: %d\n", req.httpv_len);
     }
     
     if (bytes_rec == 0)

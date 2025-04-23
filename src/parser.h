@@ -3,19 +3,14 @@ Parse module for extracting the data from the requests buffers.
 */
 
 struct Request {
-    const char *req_line_ptr;
-	int req_line_len;
-    const char *headers_ptr;
-	int headers_len;
+    char *req_line_ptr;
+    char *headers_ptr;
 
-	const char *method_ptr;
-	int method_len;
-	const char *uri_ptr;
-	int uri_len;
-	const char *httpv_ptr;
-	int httpv_len;
+	char *method_ptr;
+	char *uri_ptr;
+	char *httpv_ptr;
 };
 
-int request_parser(struct Request *req, const char buffer[], 
+char *request_parser(struct Request *req, char buffer[], 
 				   int buffer_len);
 
