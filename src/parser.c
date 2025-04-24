@@ -71,6 +71,7 @@ static char *tokenizer(char buffer[], int buffer_len)
 		}
 	}
 	
+	// Clean up and get ready for fresh input
 	free(init_ib_ptr);
 	ib_ptr = NULL;
 	init_ib_ptr = NULL;
@@ -83,6 +84,14 @@ static char *tokenizer(char buffer[], int buffer_len)
 
 char *request_parser(struct Request *req, char buffer[], int buffer_len)
 {
+	/*
+	 * Returns a Request structure pointer with the data in buffer
+	 * parsed. Memory is allocated by callee, caller is responsible 
+	 * of freeing the memory.
+	 *
+	 * Returns NULL upon an invalid HTTP format.
+	 */
+
 	char *token_ptr;
 
 	token_ptr = tokenizer(buffer, buffer_len);
