@@ -55,6 +55,7 @@ int main(int argc, char *argv[])
     while ((bytes_rec = recv(cfd, buffer, BUFF_SIZE-1, 0)) > 0) {
         buffer[bytes_rec] = '\0';
 
+		printf("Bytes received:%s\n", buffer);
         // Parsing 
         // Request line and headers
 		request_parser(&req, buffer, BUFF_SIZE);

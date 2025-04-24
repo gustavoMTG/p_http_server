@@ -36,7 +36,7 @@ static char *tokenizer(char buffer[], int buffer_len)
 	static char *init_ib_ptr;	// remember ib_ptr to free
 	static char *init_b_ptr;	// also remember the original buffer
 	static int crlf_counter = 0;
-	int i, j;
+	int i;
 
 	// Working with the same buffer?
 	if (ib_size != buffer_len || init_b_ptr != buffer) {
@@ -49,8 +49,17 @@ static char *tokenizer(char buffer[], int buffer_len)
 	}
 
 	// Tokenizing
-	for (i=0, j=0, ib_ptr; j<ib_size; ib_ptr++, i++, j++) {
-		if (strncmp("\r\n", ib_ptr, 2) == 0) {
+	for (i=0, ib_ptr; ib_ptr-init_ib_ptr<ib_size; ib_ptr++, i++) {
+		if (strncmp("\r\n\r\n", ib_ptr, 4) == 0) {
+			*ib_ptr = '\0';
+			ib_ptr++;
+			*ib_ptr = '\0';
+			ib_ptr++;
+			*ib_ptr = '\0';
+			ib_ptr++;
+			*ib_ptr = '\0';
+			return ib_ptr++ - i - 3;
+		} else if (strncmp("\r\n", ib_ptr, 2) == 0) {
 			crlf_counter++;
 			*ib_ptr = '\0';
 			ib_ptr++;
@@ -63,6 +72,9 @@ static char *tokenizer(char buffer[], int buffer_len)
 	}
 	
 	free(init_ib_ptr);
+	ib_ptr = NULL;
+	init_ib_ptr = NULL;
+	init_b_ptr = NULL;
 	ib_size = 0;
 	crlf_counter = 0;
 
