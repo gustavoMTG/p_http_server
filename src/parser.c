@@ -21,11 +21,14 @@
 #include "parser.h"
 
 
-static char *tokenizer(char buffer[], int buffer_len)
+static char *tokenizer(char *buff, char buffer[], int buffer_len)
 {
 	/*
 	Returns pointer to NULL terminated string in a separate buffer 
 	for each token found in buffer within buffer_len.
+
+	Memory is allocated by callee for the tokens, and the caller is 
+	responsible of freeing this region.
 
 	Care must be taken for threading and reentrancy because of state
 	stored in static variables.	
@@ -41,8 +44,9 @@ static char *tokenizer(char buffer[], int buffer_len)
 	// Working with the same buffer?
 	if (ib_size != buffer_len || init_b_ptr != buffer) {
 		ib_size = buffer_len;
-		free(init_ib_ptr);
+		// free(init_ib_ptr);
 		ib_ptr = (char*)malloc(ib_size);
+		buff = ib_ptr;				// Caller ptr, caller responsible.
 		init_ib_ptr = ib_ptr;
 		init_b_ptr = buffer;
 		memcpy(ib_ptr, buffer, ib_size);
@@ -72,7 +76,7 @@ static char *tokenizer(char buffer[], int buffer_len)
 	}
 	
 	// Clean up and get ready for fresh input
-	free(init_ib_ptr);
+	// free(init_ib_ptr);
 	ib_ptr = NULL;
 	init_ib_ptr = NULL;
 	init_b_ptr = NULL;
@@ -82,22 +86,46 @@ static char *tokenizer(char buffer[], int buffer_len)
 	return NULL;
 }
 
-char *request_parser(struct Request *req, char buffer[], int buffer_len)
+struct Request *request_parser(char *buff, char buffer[], int buffer_len)
 {
 	/*
 	 * Returns a Request structure pointer with the data in buffer
-	 * parsed. Memory is allocated by callee, caller is responsible 
-	 * of freeing the memory.
+	 * parsed until buffer_len. Memory is allocated by callee, caller 
+	 * is responsible of freeing the memory in buff.
 	 *
 	 * Returns NULL upon an invalid HTTP format.
 	 */
 
+	int token_counter = 0;
+	int headers_counter = 0;
 	char *token_ptr;
+	struct Request *req = malloc(sizeof(struct Request));
+	req->headers_ptr = malloc(sizeof(char *));
 
-	token_ptr = tokenizer(buffer, buffer_len);
+	// TODO: Return NULL upon invalid format
+	token_ptr = tokenizer(buff, buffer, buffer_len);
 	while (token_ptr != NULL) {
-		printf("Found: %s\n", token_ptr);
-		token_ptr = tokenizer(buffer, buffer_len);
-	}
+		switch (token_counter) {
+			case 0:
+				req->method_ptr = token_ptr;
+				break;
+			case 1:
+				req->uri_ptr = token_ptr;
+				break;
+			case 2:
+				req->httpv_ptr = token_ptr;
+				break;
+			default:
+				req->headers_ptr[headers_counter] = token_ptr;
+				headers_counter++;
+				req->headers_ptr = realloc(req->headers_ptr, (headers_counter + 1)*sizeof(char *));
+		}
 
+		// printf("Found: %s\n", token_ptr);
+		token_ptr = tokenizer(buff, buffer, buffer_len);
+		token_counter++;
+	}
+	req->headers_qty = headers_counter;
+
+	return req;
 }

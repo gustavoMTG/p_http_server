@@ -16,7 +16,8 @@ int main(int argc, char *argv[])
     ssize_t bytes_rec;
     struct sockaddr_in address;
     char buffer[BUFF_SIZE] = {0};
-    struct Request req;
+	char *buff;
+    struct Request *req;
 
     sfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sfd == -1) {
@@ -58,8 +59,9 @@ int main(int argc, char *argv[])
 		printf("Bytes received:%s\n", buffer);
         // Parsing 
         // Request line and headers
-		request_parser(&req, buffer, BUFF_SIZE);
+		req = request_parser(buff, buffer, BUFF_SIZE);
 
+		// TODO: Elaborate response
     }
     
     if (bytes_rec == 0)

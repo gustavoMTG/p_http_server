@@ -6,9 +6,9 @@ struct Request {
 	char *method_ptr;
 	char *uri_ptr;
 	char *httpv_ptr;
-    char *headers_ptr;
+    char **headers_ptr;
+	int headers_qty;
 };
 
-char *request_parser(struct Request *req, char buffer[], 
-				   int buffer_len);
+struct Request *request_parser(char *buff, char buffer[], int buffer_len);
 
