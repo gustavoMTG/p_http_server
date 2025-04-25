@@ -4,7 +4,9 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <errno.h>
 #include "parser.h"
+#include "response.h"
 
 #define PORT 8080
 #define BUFF_SIZE 2048
@@ -13,11 +15,12 @@
 int main(int argc, char *argv[])
 {
     int sfd, cfd, addrlen;
-    ssize_t bytes_rec;
+    ssize_t bytes_rec, bytes_sent;
     struct sockaddr_in address;
     char buffer[BUFF_SIZE] = {0};
 	char *buff;
     struct Request *req;
+    char *res;
 
     sfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sfd == -1) {
@@ -62,6 +65,24 @@ int main(int argc, char *argv[])
 		req = request_parser(buff, buffer, BUFF_SIZE);
 
 		// TODO: Elaborate response
+		if (req == NULL) {
+			; // Elaborate invalid response
+		} else {
+			// Elaborate valid response
+			res = response_gen(req);
+		}
+
+		printf("%s\n", res);
+		printf("%ld\n", strlen(res));
+
+		errno = 0;
+		bytes_sent = send(cfd, res, strlen(res), 0);
+		if (bytes_sent == -1) {
+			printf("error\n");
+			perror("send");
+		}
+		printf("Sent %ld bytes\n", bytes_sent);
+
     }
     
     if (bytes_rec == 0)
