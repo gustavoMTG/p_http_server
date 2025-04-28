@@ -19,12 +19,52 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <string.h>
 
+struct Response *create_response(void)
+{
+	/*
+	 * Create and return a struct Response with default values.
+	 */
+
+	struct Response *res = malloc(sizeof(struct Response));
+	if (!res) return NULL;
+	res->httpv_ptr = "HTTP/1.1";
+	res->statuscode_ptr = "200";
+	res->reasonp_ptr = "Ok";
+	res->headers_ptr = NULL;
+	res->headers_count = 0;
+	res->messagebody_ptr = NULL;
+	return res;
+}
+
+static int file2mbody(struct Response *res, FILE *file, ssize_t size)
+{
+	/*
+	 * Read a file and copy the content to the message body.
+	 * This method allocates size + 1 bytes of memory, the +1 is
+	 * for EOL.
+	 */
+
+	size_t read_size;
+
+	res->messagebody_ptr = malloc(size + 1);
+	if (!res->messagebody_ptr)
+		perror("malloc");
+	read_size = fread(res->messagebody_ptr, 1, size, file);
+	if (read_size != (size_t)size)
+		printf("Size and read_size are not equal\n");
+	res->messagebody_ptr[size] = '\0';
+	return read_size;
+}
 
 static struct Response *tokenizer(struct Request *req)
 {
-	struct Response *res;
+	/*
+	 * From a Request structure this function returns a response 
+	 * appropriate for the request received.
+	 */
+
+	struct Response *res = create_response();
 	char *uri;
 	FILE *uri_file;
 	int ch;
@@ -44,31 +84,17 @@ static struct Response *tokenizer(struct Request *req)
 		fseek(uri_file, 0, SEEK_END);
 		size = ftell(uri_file);
 		rewind(uri_file);
-		// And reserve memory for message body
-		res = malloc(sizeof(struct Response *));
-		res->messagebody_ptr = malloc(size + 1); // +1 for EOL
-		if (res->messagebody_ptr == NULL) {
-			perror("malloc");
-			fclose(uri_file);
-			return NULL;
-		}
 
-		file_counter = 0;
-		while ((ch = fgetc(uri_file)) != EOF) {
-			*(res->messagebody_ptr + file_counter) = ch;
-			file_counter++;
-		}
+		// Copy file data to message body
+		file2mbody(res, uri_file, size);
+		// file_counter = 0;
+		//while ((ch = fgetc(uri_file)) != EOF) {
+			// TODO: Memory allocator method required
+			// *(res->messagebody_ptr + file_counter) = ch;
+			// file_counter++;
+		// }
 
 		fclose(uri_file);
-
-		// Provide HTTP version
-		res->httpv_ptr = "HTTP/1.1";
-
-		// Provide status code
-		res->statuscode_ptr = "200";
-
-		// Provide reason phrase
-		res->reasonp_ptr = "Ok";
 	}
 
 	return res;
@@ -105,6 +131,11 @@ char *response_gen(struct Request *req)
 	// Reason phrase
 	strncpy(char_res + httpv_size + statuscode_size + 2, 
 			res->reasonp_ptr, reasonp_size);
+
+	// Headers
+	
+
+	// CRLF CRLF sequence
 	strncpy(char_res + httpv_size + statuscode_size + reasonp_size + 2, 
 			"\r\n\r\n", 4);
 	// Body

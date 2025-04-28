@@ -78,7 +78,6 @@ int main(int argc, char *argv[])
 		errno = 0;
 		bytes_sent = send(cfd, res, strlen(res), 0);
 		if (bytes_sent == -1) {
-			printf("error\n");
 			perror("send");
 		}
 		printf("Sent %ld bytes\n", bytes_sent);
