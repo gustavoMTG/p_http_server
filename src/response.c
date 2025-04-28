@@ -54,6 +54,12 @@ static int file2mbody(struct Response *res, FILE *file, ssize_t size)
 	if (read_size != (size_t)size)
 		printf("Size and read_size are not equal\n");
 	res->messagebody_ptr[size] = '\0';
+
+	// Content-Length header needs to be included
+	res->headers_ptr = malloc(sizeof(struct Header *));
+	res->headers_ptr->name = "Content-length";
+	res->headers_ptr->value = "";
+	res->headers_count++;
 	return read_size;
 }
 
@@ -65,6 +71,7 @@ static struct Response *tokenizer(struct Request *req)
 	 */
 
 	struct Response *res = create_response();
+	size_t size;
 	char *uri;
 	FILE *uri_file;
 	int ch;
@@ -97,13 +104,12 @@ char *response_gen(struct Request *req)
 {
 	struct Response *res;
 	char *char_res;
-	long space;
-	long httpv_size;
-	long statuscode_size;
-	long reasonp_size;
-	long messagebody_size;
+	int i;
+	long space, spacing = 0;
+	long httpv_size, statuscode_size, reasonp_size, messagebody_size;
 
 	res = tokenizer(req);
+
 	httpv_size = strlen(res->httpv_ptr);
 	statuscode_size = strlen(res->statuscode_ptr);
 	reasonp_size = strlen(res->reasonp_ptr);
@@ -116,24 +122,29 @@ char *response_gen(struct Request *req)
 	
 	// HTTP version
 	strncpy(char_res, res->httpv_ptr, httpv_size);
-	strncpy(char_res + httpv_size, " ", 1);
+	spacing = httpv_size;
+	strncpy(char_res + spacing, " ", 1);
 	// Status code
-	strncpy(char_res + httpv_size + 1, 
-			res->statuscode_ptr, statuscode_size);
-	strncpy(char_res + httpv_size + statuscode_size + 1, " ", 1);
+	spacing++;
+	strncpy(char_res + spacing, res->statuscode_ptr, statuscode_size);
+	spacing += statuscode_size;
+	strncpy(char_res + spacing, " ", 1);
 	// Reason phrase
-	strncpy(char_res + httpv_size + statuscode_size + 2, 
-			res->reasonp_ptr, reasonp_size);
+	spacing++;
+	strncpy(char_res + spacing, res->reasonp_ptr, reasonp_size);
 
 	// Headers
-	
+	for (i=0; i<res->headers_count; i++) {
+		printf("We are in header number %d\n", i);
+		printf("header is: %s\n", res->headers_ptr[i].name);
+	}
 
 	// CRLF CRLF sequence
-	strncpy(char_res + httpv_size + statuscode_size + reasonp_size + 2, 
-			"\r\n\r\n", 4);
+	spacing += reasonp_size;
+	strncpy(char_res + spacing, "\r\n\r\n", 4);
 	// Body
-	strncpy(char_res + httpv_size + statuscode_size + reasonp_size + 6, 
-			res->messagebody_ptr, messagebody_size);
+	spacing += 4;
+	strncpy(char_res + spacing, res->messagebody_ptr, messagebody_size);
 	// strncpy(char_res + httpv_size + statuscode_size + reasonp_size 
 	// 		+ messagebody_size + 6, "\r\n\r\n", 4);
 
