@@ -68,7 +68,6 @@ static struct Response *tokenizer(struct Request *req)
 	char *uri;
 	FILE *uri_file;
 	int ch;
-	long size, file_counter;
 
 	if (strncmp(req->method_ptr, "GET", 3) == 0) {
 
@@ -87,12 +86,6 @@ static struct Response *tokenizer(struct Request *req)
 
 		// Copy file data to message body
 		file2mbody(res, uri_file, size);
-		// file_counter = 0;
-		//while ((ch = fgetc(uri_file)) != EOF) {
-			// TODO: Memory allocator method required
-			// *(res->messagebody_ptr + file_counter) = ch;
-			// file_counter++;
-		// }
 
 		fclose(uri_file);
 	}
