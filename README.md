@@ -17,7 +17,7 @@ This will output a p_http_server executable file.
 ## Usage
 
 ```bash
-./p_http_server
+$ ./p_http_server
 ```
 
 The server will listen all network interfaces on port 8080 for incomming TCP connections.
