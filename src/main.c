@@ -7,6 +7,7 @@
 #include <errno.h>
 #include "parser.h"
 #include "response.h"
+#include "logging.h"
 
 #define DEFAULT_PORT 8080
 #define BUFF_SIZE 2048
@@ -47,7 +48,7 @@ int main(int argc, char *argv[])
         close(sfd);
         exit(EXIT_FAILURE);
     }
-	printf("Listening on port %d\n", port);
+	LOG_INFO("Listening on port %d", port);
 
 	for (;;) {
 		// Accept a connection
