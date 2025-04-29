@@ -46,6 +46,7 @@ static int file2mbody(struct Response *res, FILE *file, ssize_t size)
 	 */
 
 	size_t read_size;
+	int content_length;
 
 	res->messagebody_ptr = malloc(size + 1);
 	if (!res->messagebody_ptr)
@@ -58,7 +59,9 @@ static int file2mbody(struct Response *res, FILE *file, ssize_t size)
 	// Content-Length header needs to be included
 	res->headers_ptr = malloc(sizeof(struct Header *));
 	res->headers_ptr->name = "Content-length";
-	res->headers_ptr->value = "";
+	content_length = snprintf(NULL, 0, "%ld", read_size);
+	res->headers_ptr->value = malloc(content_length + 1);
+	snprintf(res->headers_ptr->value, content_length + 1, "%ld", read_size);
 	res->headers_count++;
 	return read_size;
 }
@@ -134,19 +137,25 @@ char *response_gen(struct Request *req)
 	strncpy(char_res + spacing, res->reasonp_ptr, reasonp_size);
 
 	// Headers
+	spacing += reasonp_size;
 	for (i=0; i<res->headers_count; i++) {
-		printf("We are in header number %d\n", i);
-		printf("header is: %s\n", res->headers_ptr[i].name);
+		strncpy(char_res + spacing, "\r\n", 2);
+		spacing += 2;
+		strncpy(char_res + spacing, res->headers_ptr[i].name, 
+				strlen(res->headers_ptr[i].name));
+		spacing += strlen(res->headers_ptr[i].name);
+		strncpy(char_res + spacing, ": ", 2);
+		spacing += 2;
+		strncpy(char_res + spacing, res->headers_ptr[i].value, 
+				strlen(res->headers_ptr[i].value));
+		spacing += strlen(res->headers_ptr[i].value);
 	}
 
 	// CRLF CRLF sequence
-	spacing += reasonp_size;
 	strncpy(char_res + spacing, "\r\n\r\n", 4);
 	// Body
 	spacing += 4;
 	strncpy(char_res + spacing, res->messagebody_ptr, messagebody_size);
-	// strncpy(char_res + httpv_size + statuscode_size + reasonp_size 
-	// 		+ messagebody_size + 6, "\r\n\r\n", 4);
 
 	return char_res;
 }

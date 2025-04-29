@@ -72,9 +72,6 @@ int main(int argc, char *argv[])
 			res = response_gen(req);
 		}
 
-		printf("%s\n", res);
-		printf("%ld\n", strlen(res));
-
 		errno = 0;
 		bytes_sent = send(cfd, res, strlen(res), 0);
 		if (bytes_sent == -1) {
