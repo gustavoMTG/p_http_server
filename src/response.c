@@ -20,6 +20,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+// TODO: implement freeing response memory allocation function
+int free_response(struct Response *res)
+{
+	int i;
+
+	// Free headers
+	for (i=0; i<res->headers_count; i++) {
+		;
+	}
+	
+	return 1;
+}
+
 struct Response *create_response(void)
 {
 	/*
@@ -156,6 +169,8 @@ char *response_gen(struct Request *req)
 	// Body
 	spacing += 4;
 	strncpy(char_res + spacing, res->messagebody_ptr, messagebody_size);
+	
+	// TODO: Dealocate memory for response.
 
 	return char_res;
 }
