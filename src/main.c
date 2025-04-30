@@ -11,7 +11,6 @@
 
 #define DEFAULT_PORT 8080
 #define BUFF_SIZE 2048
-#define BUFF_REQLINE 30
 
 int main(int argc, char *argv[])
 {
@@ -25,6 +24,8 @@ int main(int argc, char *argv[])
 
 	if (argc > 1)
 		port = atoi(argv[1]);
+	if (argc > 2)
+		set_log_level(atoi(argv[2]));
 
     sfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sfd == -1) {
@@ -59,17 +60,19 @@ int main(int argc, char *argv[])
 			close(sfd);
 			exit(EXIT_FAILURE);
 		}
-		printf("Connection accepted.\n");
+		LOG_INFO("Connection accepted.");
 
 		// Receive data
 		bytes_rec = 0;
 		while ((bytes_rec = recv(cfd, buffer, BUFF_SIZE-1, 0)) > 0) {
 			buffer[bytes_rec] = '\0';
+			LOG_DEBUG("Bytes received:\n%s", buffer);
 
-			printf("Bytes received:\n%s", buffer);
 			// Parsing 
 			// Request line and headers
 			req = request_parser(buff, buffer, BUFF_SIZE);
+			LOG_INFO("%s %s %s", req->method_ptr, req->uri_ptr,
+					req->httpv_ptr);
 
 			// TODO: Elaborate response
 			if (req == NULL) {
@@ -84,12 +87,12 @@ int main(int argc, char *argv[])
 			if (bytes_sent == -1) {
 				perror("send");
 			}
-			printf("Sent %ld bytes\n", bytes_sent);
+			LOG_DEBUG("Sent %ld bytes", bytes_sent);
 
 		}
 		
 		if (bytes_rec == 0)
-			printf("Client disconnected\n");
+			LOG_DEBUG("Client disconnected");
 		else if (bytes_rec < 0)
 			perror("recv");
 
