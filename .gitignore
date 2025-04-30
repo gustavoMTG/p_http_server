@@ -2,3 +2,4 @@
 *.swp
 *.vim
 p_http_server
+objs/
