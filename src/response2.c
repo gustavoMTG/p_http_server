@@ -1,3 +1,17 @@
+/*
+ *  After receiving and interpreting a request message, a server responds
+ *  with an HTTP response message.
+ *
+ *  Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
+ * 
+ *      Response      = Status-Line 
+ *                      *(( general-header
+ *                       | response-header
+ *                       | entity-header ) CRLF)
+ *                      CRLF
+ *                      [ message-body ]
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

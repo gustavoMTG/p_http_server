@@ -75,6 +75,7 @@ int main(int argc, char *argv[])
 
 			// Extract info from buffer and store pointer into request struct
 			request2struct(req, buffer, BUFF_SIZE);
+			LOG_INFO("%s %s %s", req->method, req->uri, req->httpv);
 			LOG_DEBUG("Request method: %s", req->method);
 			LOG_DEBUG("Request uri: %s", req->uri);
 			LOG_DEBUG("Request httpv: %s", req->httpv);
