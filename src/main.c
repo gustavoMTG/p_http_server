@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
     char buffer[BUFF_SIZE] = {0};
 	Request *req;
 	Response *res;
+	char *res_buff;
 
 	if (argc > 1)
 		port = atoi(argv[1]);
@@ -82,9 +83,9 @@ int main(int argc, char *argv[])
 				LOG_DEBUG("Request header%d value: %s", i, req->headers[i].value);
 			}
 
-			// Process response
+			// Process response into a structure
 			res = request2response(req);
-			LOG_DEBUG("Response status line:%s %s %s", 
+			LOG_DEBUG("Response status line: %s %s %s", 
 					res->httpv, res->statuscode, res->reasonp);
 			for (int i=0; i<res->headers_count; i++) {
 				LOG_DEBUG("Response header%d name: %s", i, res->headers[i].name);
@@ -93,9 +94,20 @@ int main(int argc, char *argv[])
 			LOG_DEBUG("Response message body:\n%s", 
 					res->messagebody);
 
-			// Free structures
+			// Process response structure into a buffer to send
+			res_buff = response2buffer(res);
+			LOG_DEBUG("Response buffer:\n%s", res_buff);
+
+			// Send response
+			bytes_sent = send(cfd, res_buff, strlen(res_buff), 0);
+			if (bytes_sent < 0)
+				perror("send");
+			LOG_DEBUG("Sent %d bytes", bytes_sent);
+
+			// Free structures and buffers
 			free_request2(req);
 			free_response(res);
+			free(res_buff);
 		}
 		
 		if (bytes_rec == 0)

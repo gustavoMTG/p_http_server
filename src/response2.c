@@ -43,7 +43,7 @@ Response *request2response(Request *req)
 	Response *res = init_response();
 	char *header_value;
 
-	// 2. read request data structure and interpret
+	// 2. read request data structure and fill fields
 	if (strncmp("HTTP/1.1", req->httpv, 8) == 0) {
 		LOG_DEBUG("Request is same HTTP version as server");
 
@@ -55,6 +55,7 @@ Response *request2response(Request *req)
 				res->httpv = "HTTP/1.1";
 				res->statuscode = "400";
 				res->reasonp = "ResourceNotFound";
+				add_header(res, "Content-length", "0");
 				return res;
 			}
 
@@ -77,7 +78,56 @@ Response *request2response(Request *req)
 		;
 	}
 
-	// 3. fill response fileds and return structure
-	
 	return res;
+}
+
+char *response2buffer(Response *res)
+{
+	/*
+	 * Return a buffer pointer with allocated memory for the string.
+	 * Caller is responsible of freeing this memory.
+	 */
+
+	char *res_buff;
+	int i = 0;
+	int curr_position = 0;
+	int res_size = 0;
+	int status_line_size = 0;
+
+	// Add lengths of HTTP version, status code, reason phrase
+	// and the 2 SP in between.
+	status_line_size = strlen(res->httpv) + strlen(res->statuscode)
+		+ strlen(res->reasonp) + 2;
+	res_size = status_line_size;
+
+	// Add headers lengths and 2 for each CRLF sequence at the end
+	// of each header and +2 for the ": " separator between name and value.
+	for (i=0; i<res->headers_count; i++) {
+		res_size += strlen(res->headers[i].name) 
+			+ strlen(res->headers[i].value) + 4;
+	}
+
+	// Add message body size plus 4 for the final CRLFCRLF sequence
+	res_size += strlen(res->messagebody) + 4;
+
+	// Allocate memory for the full buffer.
+	// +1 for EOF just for security.
+	res_buff = malloc(res_size + 1);
+	LOG_DEBUG("Response size: %d", res_size);
+
+	// Place each part in the response buffer
+	snprintf(res_buff, status_line_size+1, "%s %s %s", 
+			res->httpv, res->statuscode, res->reasonp);
+	curr_position = status_line_size;
+	for (i=0; i<res->headers_count; i++) {
+		snprintf(res_buff+curr_position, res_size-curr_position+1, 
+				"\r\n%s: %s", res->headers[i].name, res->headers[i].value);
+		curr_position += strlen(res->headers[i].name) 
+			+ strlen(res->headers[i].value) + 4;
+	}
+	if (res->messagebody)
+		snprintf(res_buff+curr_position, res_size-curr_position+1, 
+				"\r\n\r\n%s", res->messagebody);
+
+	return res_buff;
 }
