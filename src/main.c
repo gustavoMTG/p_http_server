@@ -5,9 +5,9 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <errno.h>
-#include "parser.h"
-#include "response.h"
+#include "response2.h"
 #include "logging.h"
+#include "request.h"
 
 #define DEFAULT_PORT 8080
 #define BUFF_SIZE 2048
@@ -18,9 +18,8 @@ int main(int argc, char *argv[])
     ssize_t bytes_rec, bytes_sent;
     struct sockaddr_in address;
     char buffer[BUFF_SIZE] = {0};
-	char *buff;
-    struct Request *req;
-    char *res;
+	Request *req;
+	Response *res;
 
 	if (argc > 1)
 		port = atoi(argv[1]);
@@ -60,35 +59,43 @@ int main(int argc, char *argv[])
 			close(sfd);
 			exit(EXIT_FAILURE);
 		}
-		LOG_INFO("Connection accepted.");
+		LOG_DEBUG("Connection accepted.");
 
+		// MAIN LOOP
 		// Receive data
 		bytes_rec = 0;
 		while ((bytes_rec = recv(cfd, buffer, BUFF_SIZE-1, 0)) > 0) {
+			LOG_DEBUG("Connection loop with %d bytes received", bytes_rec);
 			buffer[bytes_rec] = '\0';
 			LOG_DEBUG("Bytes received:\n%s", buffer);
+			
+			// Allocates structures
+			req = init_request();
 
-			// Parsing 
-			// Request line and headers
-			req = request_parser(buff, buffer, BUFF_SIZE);
-			LOG_INFO("%s %s %s", req->method_ptr, req->uri_ptr,
-					req->httpv_ptr);
-
-			// TODO: Elaborate response
-			if (req == NULL) {
-				; // Elaborate invalid response
-			} else {
-				// Elaborate valid response
-				res = response_gen(req);
+			// Extract info from buffer and store pointer into request struct
+			request2struct(req, buffer, BUFF_SIZE);
+			LOG_DEBUG("Request method: %s", req->method);
+			LOG_DEBUG("Request uri: %s", req->uri);
+			LOG_DEBUG("Request httpv: %s", req->httpv);
+			for (int i=0; i<req->headers_qty; i++) {
+				LOG_DEBUG("Request header%d name: %s", i, req->headers[i].name);
+				LOG_DEBUG("Request header%d value: %s", i, req->headers[i].value);
 			}
 
-			errno = 0;
-			bytes_sent = send(cfd, res, strlen(res), 0);
-			if (bytes_sent == -1) {
-				perror("send");
+			// Process response
+			res = request2response(req);
+			LOG_DEBUG("Response status line:%s %s %s", 
+					res->httpv, res->statuscode, res->reasonp);
+			for (int i=0; i<res->headers_count; i++) {
+				LOG_DEBUG("Response header%d name: %s", i, res->headers[i].name);
+				LOG_DEBUG("Response header%d value: %s", i, res->headers[i].value);
 			}
-			LOG_DEBUG("Sent %ld bytes", bytes_sent);
+			LOG_DEBUG("Response message body:\n%s", 
+					res->messagebody);
 
+			// Free structures
+			free_request2(req);
+			free_response(res);
 		}
 		
 		if (bytes_rec == 0)
