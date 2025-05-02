@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
 	Request *req;
 	Response *res;
 	char *res_buff;
+	int break_conn = 0;
 
 	if (argc > 1)
 		port = atoi(argv[1]);
@@ -61,6 +62,7 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 		LOG_DEBUG("Connection accepted.");
+		break_conn = 0;
 
 		// MAIN LOOP
 		// Receive data
@@ -105,10 +107,24 @@ int main(int argc, char *argv[])
 				perror("send");
 			LOG_DEBUG("Sent %d bytes", bytes_sent);
 
+			// Check headers for connection state
+			for (int i=0; i<res->headers_count; i++)
+				if (strncmp(res->headers[i].name, "Connection", 10) == 0
+					&& strncmp(res->headers[i].value, "close", 5)) {
+					LOG_DEBUG("Found break condition");
+					break_conn = 1;
+					break;
+				}
+
 			// Free structures and buffers
 			free_request2(req);
 			free_response(res);
 			free(res_buff);
+
+			if (break_conn) {
+				LOG_DEBUG("Breaking");
+				break;
+			}
 		}
 		
 		if (bytes_rec == 0)

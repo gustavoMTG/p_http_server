@@ -45,10 +45,14 @@ void add_header(Response *res, char *name, char *value)
 	if (res->headers_count == 1)
 		res->headers = malloc(res->headers_count * sizeof(Header));
 	else
-		realloc(res->headers, res->headers_count * sizeof(Header));
+		res->headers = realloc(res->headers, 
+				res->headers_count * sizeof(Header));
 
 	res->headers[res->headers_count-1].name = strdup(name);
 	res->headers[res->headers_count-1].value = strdup(value);
+	LOG_DEBUG("Added header: %s: %s", 
+			res->headers[res->headers_count-1].name,
+			res->headers[res->headers_count-1].value);
 }
 
 Response *request2response(Request *req)
@@ -56,6 +60,7 @@ Response *request2response(Request *req)
 	// 1. create, allocate and initialize response datatype
 	Response *res = init_response();
 	char *header_value;
+	int i;
 
 	// 2. read request data structure and fill fields
 	if (strncmp("HTTP/1.1", req->httpv, 8) == 0) {
@@ -67,8 +72,8 @@ Response *request2response(Request *req)
 				// TODO: handle missing file
 				perror("fopen");
 				res->httpv = "HTTP/1.1";
-				res->statuscode = "400";
-				res->reasonp = "ResourceNotFound";
+				res->statuscode = "404";
+				res->reasonp = "Not Found";
 				add_header(res, "Content-length", "0");
 				return res;
 			}
@@ -85,6 +90,16 @@ Response *request2response(Request *req)
 			res->httpv = "HTTP/1.1";
 			res->statuscode = "200";
 			res->reasonp = "Ok";
+
+			// Scan headers
+			for (i=0; i<req->headers_qty; i++) {
+				LOG_DEBUG("Scanning header #%d", i);
+				if (strncmp(req->headers[i].name, "Connection", 10) == 0
+					&& strncmp(req->headers[i].value, "close", 5) == 0) {
+					LOG_DEBUG("Found Connection close header in request");
+					add_header(res, "Connection", "close");
+				}
+			}
 		}
 
 	} else {
