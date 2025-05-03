@@ -17,7 +17,16 @@ This will output a p_http_server executable file.
 ## Usage
 
 ```bash
-$ ./p_http_server <port>
+$ ./p_http_server <port> <verbosity>
 ```
 
+Where **verbosity** can be 0 for **DEBUG** level output or 1 for **INFO** level output.
+
 The server will listen all network interfaces, if port is not provided will default to port 8080 for incomming TCP connections.
+
+## State of development
+
+The server currently supports **GET** and **HEAD** methods although these are still under development.
+
+Static files serving, no dynamic content yet.
+
