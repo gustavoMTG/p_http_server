@@ -66,6 +66,7 @@ Response *request2response(Request *req)
 	// 2. read request data structure and fill fields
 	if (strncmp("HTTP/1.1", req->httpv, 8) == 0) {
 		LOG_DEBUG("Request is same HTTP version as server");
+		res->httpv = "HTTP/1.1";
 
 		if (strncmp(GET_METHOD, req->method, 3) == 0
 			|| strncmp(HEAD_METHOD, req->method, 4) == 0) {
@@ -73,7 +74,6 @@ Response *request2response(Request *req)
 			if (!file) {
 				// TODO: handle missing file
 				perror("fopen");
-				res->httpv = "HTTP/1.1";
 				res->statuscode = SC_404;
 				res->reasonp = SC_404_SP;
 				add_header(res, "Content-length", "0");
@@ -90,25 +90,31 @@ Response *request2response(Request *req)
 				add_header(res, "Content-length", header_value);
 				free(header_value);
 
-				res->httpv = "HTTP/1.1";
 				res->statuscode = SC_200;
 				res->reasonp = SC_200_SP;
 			}
 
-			// Scan headers
-			for (i=0; i<req->headers_qty; i++) {
-				LOG_DEBUG("Scanning header #%d", i);
-				if (strncmp(req->headers[i].name, "Connection", 10) == 0
-					&& strncmp(req->headers[i].value, "close", 5) == 0) {
-					LOG_DEBUG("Found Connection close header in request");
-					add_header(res, "Connection", "close");
-				}
-			}
+		} else {
+			// Unsupported method
+			res->statuscode = SC_503;
+			res->reasonp = SC_503_SP;
+			add_header(res, "Content-length", "0");
 		}
 
 	} else {
 		// TODO: Handle different HTTP version
 		;
+	}
+	
+	// Scan headers
+	for (i=0; i<req->headers_qty; i++) {
+		LOG_DEBUG("Scanning header #%d", i);
+		if (strncmp(req->headers[i].name, "Connection", 10) == 0
+			&& strncmp(req->headers[i].value, "close", 5) == 0) {
+			LOG_DEBUG("Found Connection close header in request");
+			add_header(res, "Connection", "close");
+			break;
+		}
 	}
 
 	return res;
