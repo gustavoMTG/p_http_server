@@ -31,4 +31,7 @@ $(OBJ_PREFIX):
 clean:
 	rm -rf $(OBJ_PREFIX) $(BIN)
 
-.PHONY: clean
+tests:
+	bash tests/requests.sh
+
+.PHONY: clean tests
