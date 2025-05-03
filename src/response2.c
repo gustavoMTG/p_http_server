@@ -17,6 +17,7 @@
 #include <string.h>
 #include "response2.h"
 #include "logging.h"
+#include "constants.h"
 
 
 static Response *init_response(void)
@@ -66,34 +67,33 @@ Response *request2response(Request *req)
 	if (strncmp("HTTP/1.1", req->httpv, 8) == 0) {
 		LOG_DEBUG("Request is same HTTP version as server");
 
-		if (strncmp("GET", req->method, 3) == 0
-			|| strncmp("HEAD", req->method, 4) == 0) {
+		if (strncmp(GET_METHOD, req->method, 3) == 0
+			|| strncmp(HEAD_METHOD, req->method, 4) == 0) {
 			FILE *file = fopen(req->uri + 1, "rb");
 			if (!file) {
 				// TODO: handle missing file
 				perror("fopen");
 				res->httpv = "HTTP/1.1";
-				res->statuscode = "404";
-				res->reasonp = "Not Found";
+				res->statuscode = SC_404;
+				res->reasonp = SC_404_SP;
 				add_header(res, "Content-length", "0");
-				return res;
-			}
+			} else {
+				fseek(file, 0, SEEK_END);
+				long filesize = ftell(file);
+				if (strncmp(GET_METHOD, req->method, 3) == 0) {
+					rewind(file);
+					size_t read_size = fread(res->messagebody, 1, 
+											 filesize, file);
+				}
+				fclose(file);
+				asprintf(&header_value, "%ld", filesize);
+				add_header(res, "Content-length", header_value);
+				free(header_value);
 
-			fseek(file, 0, SEEK_END);
-			long filesize = ftell(file);
-			if (strncmp("GET", req->method, 3) == 0) {
-				rewind(file);
-				size_t read_size = fread(res->messagebody, 1, 
-										 filesize, file);
+				res->httpv = "HTTP/1.1";
+				res->statuscode = SC_200;
+				res->reasonp = SC_200_SP;
 			}
-			fclose(file);
-			asprintf(&header_value, "%ld", filesize);
-			add_header(res, "Content-length", header_value);
-			free(header_value);
-
-			res->httpv = "HTTP/1.1";
-			res->statuscode = "200";
-			res->reasonp = "Ok";
 
 			// Scan headers
 			for (i=0; i<req->headers_qty; i++) {

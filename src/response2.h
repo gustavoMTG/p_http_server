@@ -1,20 +1,7 @@
 #ifndef RESPONSE_H
 #define RESPONSE_H
 
-#include "request.h"
-
-#define MAX_MBLENGTH 4096
-
-typedef struct {
-	char *httpv;
-	char *statuscode;
-	char *reasonp;
-
-	Header *headers;
-	int headers_count;
-
-	char messagebody[MAX_MBLENGTH];
-} Response;
+#include "datatypes.h"
 
 Response *request2response(Request *req);
 char *response2buffer(Response *res);
