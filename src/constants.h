@@ -1,12 +1,12 @@
 // Methods
-#define GET_METHOD "GET"
-#define HEAD_METHOD "HEAD"
-#define POST_METHOD "POST"
-#define OPTIONS_METHOD "OPTIONS"
-#define PUT_METHOD "PUT"
-#define DELETE_METHOD "DELETE"
-#define TRACE_METHOD "TRACE"
-#define CONNECT_METHOD "CONNECT"
+#define METHOD_GET "GET"
+#define METHOD_HEAD "HEAD"
+#define METHOD_POST "POST"
+#define METHOD_OPTIONS "OPTIONS"
+#define METHOD_PUT "PUT"
+#define METHOD_DELETE "DELETE"
+#define METHOD_TRACE "TRACE"
+#define METHOD_CONNECT "CONNECT"
 
 // Status code definitions
 // Informational 1xx
