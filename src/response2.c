@@ -66,7 +66,8 @@ Response *request2response(Request *req)
 	if (strncmp("HTTP/1.1", req->httpv, 8) == 0) {
 		LOG_DEBUG("Request is same HTTP version as server");
 
-		if (strncmp("GET", req->method, 3) == 0) {
+		if (strncmp("GET", req->method, 3) == 0
+			|| strncmp("HEAD", req->method, 4) == 0) {
 			FILE *file = fopen(req->uri + 1, "rb");
 			if (!file) {
 				// TODO: handle missing file
@@ -80,10 +81,13 @@ Response *request2response(Request *req)
 
 			fseek(file, 0, SEEK_END);
 			long filesize = ftell(file);
-			rewind(file);
-			size_t read_size = fread(res->messagebody, 1, filesize, file);
+			if (strncmp("GET", req->method, 3) == 0) {
+				rewind(file);
+				size_t read_size = fread(res->messagebody, 1, 
+										 filesize, file);
+			}
 			fclose(file);
-			asprintf(&header_value, "%ld", read_size);
+			asprintf(&header_value, "%ld", filesize);
 			add_header(res, "Content-length", header_value);
 			free(header_value);
 
