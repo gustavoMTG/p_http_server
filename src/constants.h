@@ -1,3 +1,4 @@
+// Methods
 #define GET_METHOD "GET"
 #define HEAD_METHOD "HEAD"
 #define POST_METHOD "POST"
@@ -95,3 +96,19 @@
 #define SC_504_SP "Gateway Timeout "
 #define SC_505 "505"
 #define SC_505_SP "HTTP Version Not Supported"
+
+// Headers
+#define H_ACCEPT "Accept"
+#define H_ACCEPT_CS "Accept-Charset"
+#define H_ACCEPT_ENC "Accept-Encoding"
+#define H_ACCEPT_LANG "Accept-Language"
+#define H_ACCEPT_RANG "Accept-Ranges"
+#define H_AGE "Age"
+#define H_ALLOW "Allow"
+#define H_AUTH "Authorization"
+#define H_CCONT "Cache-Control"
+#define H_CONN "Connection"
+#define H_CONTENC "Content-Encoding"
+#define H_CONTLANG "Content-Language"
+#define H_CONTLEN "Content-Length"
+

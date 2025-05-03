@@ -76,7 +76,7 @@ Response *request2response(Request *req)
 				perror("fopen");
 				res->statuscode = SC_404;
 				res->reasonp = SC_404_SP;
-				add_header(res, "Content-length", "0");
+				add_header(res, H_CONTLEN, "0");
 			} else {
 				fseek(file, 0, SEEK_END);
 				long filesize = ftell(file);
@@ -87,7 +87,7 @@ Response *request2response(Request *req)
 				}
 				fclose(file);
 				asprintf(&header_value, "%ld", filesize);
-				add_header(res, "Content-length", header_value);
+				add_header(res, H_CONTLEN, header_value);
 				free(header_value);
 
 				res->statuscode = SC_200;
@@ -98,7 +98,7 @@ Response *request2response(Request *req)
 			// Unsupported method
 			res->statuscode = SC_503;
 			res->reasonp = SC_503_SP;
-			add_header(res, "Content-length", "0");
+			add_header(res, H_CONTLEN, "0");
 		}
 
 	} else {
@@ -109,10 +109,10 @@ Response *request2response(Request *req)
 	// Scan headers
 	for (i=0; i<req->headers_qty; i++) {
 		LOG_DEBUG("Scanning header #%d", i);
-		if (strncmp(req->headers[i].name, "Connection", 10) == 0
+		if (strncmp(req->headers[i].name, H_CONN, 10) == 0
 			&& strncmp(req->headers[i].value, "close", 5) == 0) {
-			LOG_DEBUG("Found Connection close header in request");
-			add_header(res, "Connection", "close");
+			LOG_DEBUG("Found %s close header in request", H_CONN);
+			add_header(res, H_CONN, "close");
 			break;
 		}
 	}
