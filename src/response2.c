@@ -70,6 +70,7 @@ Response *request2response(Request *req)
 
 		if (strncmp(METHOD_GET, req->method, 3) == 0
 			|| strncmp(METHOD_HEAD, req->method, 4) == 0) {
+			// TODO: Check URI validity and ".." characters sequence
 			FILE *file = fopen(req->uri + 1, "rb");
 			if (!file) {
 				// TODO: handle missing file
