@@ -14,14 +14,14 @@
 
 int main(int argc, char *argv[])
 {
-    int sfd, cfd, addrlen, port=DEFAULT_PORT;
+    int sfd, cfd, 
+		addrlen, port=DEFAULT_PORT,
+		break_conn = 0;
     ssize_t bytes_rec, bytes_sent;
     struct sockaddr_in address;
-    char buffer[BUFF_SIZE] = {0};
+    char buffer[BUFF_SIZE] = {0}, *res_buff;
 	Request *req;
 	Response *res;
-	char *res_buff;
-	int break_conn = 0;
 
 	if (argc > 1)
 		port = atoi(argv[1]);

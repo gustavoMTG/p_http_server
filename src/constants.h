@@ -1,3 +1,6 @@
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
+
 // Methods
 #define METHOD_GET "GET"
 #define METHOD_HEAD "HEAD"
@@ -112,3 +115,4 @@
 #define H_CONTLANG "Content-Language"
 #define H_CONTLEN "Content-Length"
 
+#endif
